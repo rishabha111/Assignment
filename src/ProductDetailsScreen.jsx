@@ -1,5 +1,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
+import {loadStripe} from '@stripe/stripe-js';
+
 const containerStyle = {
   display: "flex",
   justifyContent: "center",
@@ -70,6 +72,37 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
     }
   }, [addToCart, product, addedProducts]);
 
+  const handleCheckout = async()=> {
+
+  const stripe = await loadStripe('pk_test_51PAM9fSEX84BngO5X4SAgP2LRWAHOybTxNMEmASmTVNXKVJHv8TzrW5B219cuaJk9HAa0KvHGFCb97yUV0Oz4i9J00Up9mt0JE'); 
+
+  const body = {
+    products: addedProducts
+  }
+  const headers = {
+    "Content-Type" : "application/json"
+  }
+  const response = await fetch("https://localhost:7000/api/create-checkout-session",{
+    mode: 'no-cors',
+    method: "POST",
+    headers: headers,
+    body:JSON.stringify(body) 
+  })
+
+  console.log("resresres",response)
+  const session = await response.json();
+  const result = stripe.redirectToCheckout({
+    sessionId: session.id
+  })
+
+  if(result.error){
+    console.log("eeeeeeee",result.error)
+  }
+  }
+
+
+  
+
   return (
     <div style={containerStyle}>
       <div style={productDetailsStyle}>
@@ -93,6 +126,8 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
               : "Add to Cart"}
           </button>
           <button style={addToCartButtonStyle}>Buy Now</button>
+          <button style={addToCartButtonStyle} onClick={handleCheckout}>Checkout</button>
+
         </div>
       </div>
     </div>
