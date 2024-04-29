@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import CircularProgress from '@mui/material/CircularProgress';
-
 function CategoriesScreen() {
   const [products, setProducts] = useState([]);
   const [sortOrder, setSortOrder] = useState("");
@@ -79,7 +77,6 @@ function CategoriesScreen() {
 
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
-          <CircularProgress />
         </div>
       ) : error ? (
         <p style={{ textAlign: "center", color: "red" }}>{error}</p>

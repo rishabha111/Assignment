@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import CircularProgress from "@mui/material/CircularProgress";
 
 function ProductScreen({ addToCart, showProductDetails }) {
   const [products, setProducts] = useState([]);
@@ -61,7 +60,6 @@ function ProductScreen({ addToCart, showProductDetails }) {
             height: "200px",
           }}
         >
-          <CircularProgress />
         </div>
       ) : (
         <div className="product-grid">
