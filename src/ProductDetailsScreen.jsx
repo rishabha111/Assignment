@@ -88,7 +88,7 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
       sessionId: session.id,
     });
   } catch (error) {
-    alert("Failed to initiate checkout. Please try again later. /n api error");
+    alert("Failed to initiate checkout. Please try again later api error");
   }
 };
 
