@@ -1,6 +1,5 @@
-
-import React, { useCallback, useEffect, useState } from "react";
-import {loadStripe} from '@stripe/stripe-js';
+import React, { useCallback, useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
 
 const containerStyle = {
   display: "flex",
@@ -50,13 +49,6 @@ const addToCartButtonStyle = {
 const ProductDetailsScreen = ({ product, addToCart }) => {
   const [addedProducts, setAddedProducts] = useState([]);
 
-  useEffect(() => {
-    const storedProducts = localStorage.getItem("addedProducts");
-    if (storedProducts) {
-      setAddedProducts(JSON.parse(storedProducts));
-    }
-  }, []);
-
   const handleAddToCart = useCallback(() => {
     const isProductAlreadyAdded = addedProducts.some(
       (addedProduct) => addedProduct.id === product.id
@@ -72,36 +64,34 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
     }
   }, [addToCart, product, addedProducts]);
 
-  const handleCheckout = async()=> {
+  const handleCheckout = async () => {
+  try {
+    const response = await fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productId: product.id }),
+    });
 
-  const stripe = await loadStripe('pk_test_51PAM9fSEX84BngO5X4SAgP2LRWAHOybTxNMEmASmTVNXKVJHv8TzrW5B219cuaJk9HAa0KvHGFCb97yUV0Oz4i9J00Up9mt0JE'); 
+    if (!response.ok) {
+      throw new Error("Failed to create checkout session");
+    }
 
-  const body = {
-    products: addedProducts
+    const session = await response.json();
+
+    const stripe = await loadStripe(
+      "pk_test_51PAM9fSEX84BngO5X4SAgP2LRWAHOybTxNMEmASmTVNXKVJHv8TzrW5B219cuaJk9HAa0KvHGFCb97yUV0Oz4i9J00Up9mt0JE"
+    );
+
+    await stripe.redirectToCheckout({
+      sessionId: session.id,
+    });
+  } catch (error) {
+    alert("Failed to initiate checkout. Please try again later. /n api error");
   }
-  const headers = {
-    "Content-Type" : "application/json"
-  }
-  const response = await fetch("https://localhost:7000/api/create-checkout-session",{
-    mode: 'no-cors',
-    method: "POST",
-    headers: headers,
-    body:JSON.stringify(body) 
-  })
+};
 
-  console.log("resresres",response)
-  const session = await response.json();
-  const result = stripe.redirectToCheckout({
-    sessionId: session.id
-  })
-
-  if(result.error){
-    console.log("eeeeeeee",result.error)
-  }
-  }
-
-
-  
 
   return (
     <div style={containerStyle}>
@@ -125,9 +115,9 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
               ? "Already added"
               : "Add to Cart"}
           </button>
-          <button style={addToCartButtonStyle}>Buy Now</button>
-          <button style={addToCartButtonStyle} onClick={handleCheckout}>Checkout</button>
-
+          <button style={addToCartButtonStyle} onClick={handleCheckout}>
+            Buy Now
+          </button>
         </div>
       </div>
     </div>
