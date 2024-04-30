@@ -49,7 +49,7 @@ function ProductScreen({ addToCart, showProductDetails }) {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div style={{marginleft:'10px',marginRight:'10px',backgroundColor:"#E9E6DF"}}>
+    <div style={{ marginleft: "10px", marginRight: "10px", backgroundColor: "#E9E6DF" }}>
       <h1 style={{ textAlign: "center" }}>Products</h1>
       {loading ? (
         <div
@@ -60,6 +60,7 @@ function ProductScreen({ addToCart, showProductDetails }) {
             height: "200px",
           }}
         >
+          <div className="loader"></div>
         </div>
       ) : (
         <div className="product-grid">
@@ -141,6 +142,20 @@ function ProductScreen({ addToCart, showProductDetails }) {
           width: 100%;
           height: auto;
           border-radius: 10px;
+        }
+
+        .loader {
+          border: 8px solid #f3f3f3;
+          border-top: 8px solid #3498db;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
       `}</style>
     </div>
