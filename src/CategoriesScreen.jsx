@@ -10,13 +10,13 @@ function CategoriesScreen() {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [inputText, setInputText] = useState(""); // State for input text
+  const [inputText, setInputText] = useState("");
   const productsPerPage = 18;
   const defaultImage = "https://img.freepik.com/free-photo/photography-black-hoodie-green-background_1409-5173.jpg?t=st=1714591104~exp=1714594704~hmac=c75788521f616f30d1fa83c3d5bc8a784e72a71db867818413116f8d69149632&w=1060";
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, minPrice, maxPrice, currentPage]); // Update useEffect dependencies
+  }, [selectedCategory, minPrice, maxPrice, currentPage]);
 
   const handleSort = (order) => {
     if (!Array.isArray(products) || products.length === 0) {
