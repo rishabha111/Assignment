@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -10,14 +9,63 @@ const CartScreen = () => {
   const [paymentResult, setPaymentResult] = useState(null);
   const dummyImageURL = 'https://dummyimage.com/600x400/000/fff';
   const stripePromise = loadStripe('pk_test_123456789'); 
+useEffect(() => {
+  const storedProducts = localStorage.getItem("addedProducts");
+  const storedCartItems = localStorage.getItem("cartItems");
 
-  useEffect(() => {
-    const storedProducts = localStorage.getItem("addedProducts");
-    if (storedProducts) {
-      const parsedProducts = JSON.parse(storedProducts);
-      setCartProducts(parsedProducts);
-    }
-  }, []);
+  console.log("Stored products:", storedProducts);
+  console.log("Stored cart items:", storedCartItems);
+
+  let mergedProducts = [];
+
+  if (storedProducts) {
+    const parsedProducts = JSON.parse(storedProducts);
+    mergedProducts = parsedProducts;
+  }
+
+  if (storedCartItems) {
+    const parsedCartItems = JSON.parse(storedCartItems);
+    mergedProducts = [...mergedProducts, ...parsedCartItems];
+  }
+
+  console.log("Merged products:", mergedProducts);
+
+  setCartProducts(mergedProducts);
+}, []);
+
+
+
+
+  const handleAddToCart = (productId) => {
+    const updatedCartProducts = cartProducts.map((product) => {
+      if (product.id === productId) {
+        return { ...product, quantity: (product.quantity || 0) + 1 };
+      }
+      return product;
+    });
+
+    setCartProducts(updatedCartProducts);
+  };
+
+  const handleRemoveFromCart = (productId) => {
+    const updatedCartProducts = cartProducts.map((product) => {
+      if (product.id === productId && product.quantity > 0) {
+        return { ...product, quantity: product.quantity - 1 };
+      }
+      return product;
+    });
+
+    setCartProducts(updatedCartProducts);
+  };
+
+  const handleRemoveProduct = (productId) => {
+    const updatedCartProducts = cartProducts.filter(product => product.id !== productId);
+    setCartProducts(updatedCartProducts);
+  };
+
+  const getTotalPrice = () => {
+    return cartProducts.reduce((total, product) => total + (product.price * (product.quantity || 1)), 0);
+  };
 
   const handleCheckout = async () => {
     try {
@@ -30,9 +78,6 @@ const CartScreen = () => {
         'http://localhost:7000/api/create-checkout-session',
         flattenedProducts
       );
-
-
-      
 
       console.log("Response from backend:", response); 
 
@@ -81,10 +126,8 @@ const CartScreen = () => {
 
     return (
       <form onSubmit={handleSubmit}>
-        <CardElement style={{marginleft:'30px'}} />
-        <button type="submit" disabled={!stripe}>
-          Pay
-        </button>
+        <CardElement />
+        <button type="submit" disabled={!stripe}>Pay</button>
       </form>
     );
   };
@@ -95,7 +138,7 @@ const CartScreen = () => {
       <button onClick={handleCheckout}>Checkout</button>
       {clientSecret && (
         <Elements stripe={stripePromise}>
-          <PaymentForm  />
+          <PaymentForm />
         </Elements>
       )}
       {paymentResult && (
@@ -105,8 +148,8 @@ const CartScreen = () => {
       )}
       <div>
         <h2>Cart Items</h2>
-        {cartProducts.map((product ,index) => (
-          <div key={index} style={{ marginBottom: '20px' }}>
+        {cartProducts.map((product, index) => (
+          <div key={index} style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
             <img
               src={product.image || dummyImageURL}
               alt={product.title}
@@ -114,17 +157,30 @@ const CartScreen = () => {
               width="auto"
               style={{ maxWidth: '20%', height: 'auto', borderRadius: '10px' }}
             />
-            <div>
+            <div style={{ marginLeft: '20px' }}>
               <p>{product.title}</p>
-              <p>Product Type: {product.category.name}</p>
               <p>{product.description}</p>
-              <p style={{ fontWeight: "500" }}>Price: ${product.price}</p>
+              <p style={{ fontWeight: "500" }}>Price: ${product.price * (product.quantity || 1)}</p>
+              <div>
+                <button onClick={() => handleAddToCart(product.id)}>+</button>
+                <span style={{margin:'10px' ,color:"red",border:"10%"}}>{product.quantity || 0}</span>
+                <button style={{margin:'10px' ,border:"10%"}} onClick={() => handleRemoveFromCart(product.id)}>-</button>
+                <button style={{margin:'10px',border:"10%"}} onClick={() => handleRemoveProduct(product.id)}>Remove</button>
+              </div>
             </div>
           </div>
         ))}
+      </div>
+      <div>
+        <h2>Total Price :${getTotalPrice()}</h2>
+        {/* <p>${getTotalPrice()}</p> */}
       </div>
     </div>
   );
 };
 
 export default CartScreen;
+
+
+
+

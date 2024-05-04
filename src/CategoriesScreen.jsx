@@ -1,74 +1,95 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 function CategoriesScreen() {
   const [products, setProducts] = useState([]);
-  const [sortOrder, setSortOrder] = useState("");
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [inputText, setInputText] = useState("");
-  const productsPerPage = 18;
-  const defaultImage = "https://img.freepik.com/free-photo/photography-black-hoodie-green-background_1409-5173.jpg?t=st=1714591104~exp=1714594704~hmac=c75788521f616f30d1fa83c3d5bc8a784e72a71db867818413116f8d69149632&w=1060";
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory, minPrice, maxPrice, currentPage]);
+    fetchData();
+  }, []);
 
-  const handleSort = (order) => {
-    if (!Array.isArray(products) || products.length === 0) {
-      return;
-    }
-
-    const sortedProducts = [...products];
-
-    if (order === "minToMax") {
-      sortedProducts.sort((a, b) => a.price - b.price);
-    } else if (order === "maxToMin") {
-      sortedProducts.sort((a, b) => b.price - a.price);
-    }
-
-    setProducts(sortedProducts);
-    setSortOrder(order);
-  };
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    setError(null);
+  async function fetchData() {
     try {
-      const offset = (currentPage - 1) * productsPerPage;
-      const limit = productsPerPage;
-      const response = await axios.get(
-        `https://api.escuelajs.co/api/v1/products/?price_min=${minPrice}&price_max=${maxPrice}&offset=${offset}&limit=${limit}`
-      );
-      setProducts(response.data);
+      const response = await fetch("https://api.escuelajs.co/api/v1/products");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await response.json();
+      console.log("Fetched data:", data);
+      setProducts(data);
     } catch (error) {
-      setError("Error fetching products. Please try again later.");
-    } finally {
-      setLoading(false);
+      console.error("Error fetching data:", error);
     }
-  };
+  }
 
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  function filterProducts(categoryName) {
+    let filtered = products.filter((product) => product.category.name === categoryName);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    if (minPrice !== "" && maxPrice !== "") {
+      filtered = filtered.filter(
+        (product) => product.price >= parseFloat(minPrice) && product.price <= parseFloat(maxPrice)
+      );
+    }
+
+    setFilteredProducts(filtered);
+  }
+
+  function sortProductsByPrice(order) {
+    const sorted = [...filteredProducts].sort((a, b) => {
+      if (order === "maxToMin") {
+        return b.price - a.price;
+      } else if (order === "minToMax") {
+        return a.price - b.price;
+      }
+      return 0;
+    });
+
+    setFilteredProducts(sorted);
+  }
+
+  function extractImageUrl(imageString) {
+    if (imageString && Array.isArray(imageString)) {
+      return imageString[0];
+    }
+    return "https://placeimg.com/640/480/any";
+  }
 
   return (
-    <div style={{ marginLeft: "10px", marginRight: "10px", backgroundColor: "#E9E6DF" }}>
-      <h1 style={{ textAlign: "center" }}>Categories</h1>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-        <button style={{ marginRight: "10px" }} onClick={() => handleSort("maxToMin")}>
-          Max to Min Price
-        </button>
-        <button onClick={() => handleSort("minToMax")}>Min to Max Price</button>
-      </div>
+    <div >
+      {products.length > 0 && (
+        <>
+          {/* <button onClick={() => filterProducts("Clothes")}>Show Clothes</button>
+          <button onClick={() => filterProducts("Electronic")}>Show Electronics</button> */}
 
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <>
+  
+            
+            <div style={{display:'flex', justifyContent: 'space-between'}}>
+
+              <div style={{ textAlign: 'center' }}> <img style={{ width: "100%", height: "355px", margin: '20px', borderRadius: "5%" }} onClick={() => filterProducts("Clothes")}
+                src="https://t3.ftcdn.net/jpg/01/38/94/62/360_F_138946263_EtW7xPuHRJSfyl4rU2WeWmApJFYM0B84.jpg" alt="Description of the image" />
+<p >Cloths</p>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+             
+                <img style={{ width: "100%", height: "355px", margin: '20px', borderRadius: "5%" }} onClick={() => filterProducts("Electronic")}
+                src="https://t4.ftcdn.net/jpg/05/91/84/29/360_F_591842937_ptXTrDjkCdG21JhOmaEzyZ7ZJyAhVuQP.jpg" alt="Description of the image" />
+
+<p>Electronics</p>
+              </div>     
+
+              
+                        </div>
+  
+</>
+
+        </>
+      )}
+
+      {/* <div style={{ marginTop: "20px" }}>
         <label>
           Min Price:
           <input type="number" value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
@@ -77,84 +98,30 @@ function CategoriesScreen() {
           Max Price:
           <input type="number" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
         </label>
+      </div> */}
+
+      <div style={{ marginTop: "20px" }}>
+        <button  style={{ margin: "20px" }} onClick={() => sortProductsByPrice("maxToMin")}>Sort by Max Price</button>
+        <button style={{ margin: "20px" }} onClick={() => sortProductsByPrice("minToMax")}>Sort by Min Price</button>
       </div>
 
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search by product name"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-        />
-      </div>
-
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
-        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-          <option value="">All Categories</option>
-          <option value="Clothes for Men and Woman">Clothes for Men and Woman</option>
-          <option value="Electronics">Electronics</option>
-        </select>
-      </div>
-
-      {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}></div>
-      ) : error ? (
-        <p style={{ textAlign: "center", color: "red" }}>{error}</p>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: "20px",
-          }}
-        >
-          {currentProducts
-            .filter((product) => {
-              if (selectedCategory && product.category.name !== selectedCategory) {
-                return false;
-              }
-              return product.title.toLowerCase().includes(inputText.toLowerCase());
-            })
-            .map((product) => (
-              <div
-                key={product.id}
-                style={{ border: "1px solid #ccc", padding: "10px", textAlign: "center", borderRadius: "10px" }}
-              >
-                <img
-                  src={product.images && product.images.length > 0 ? product.images[0] : defaultImage}
-                  alt={`Product ${product.id}`}
-                  height="150"
-                  width="auto"
-                  loading="lazy"
-                  style={{ borderRadius: "10px" }}
-                />
-                <h3>{product.title}</h3>
-                <p>${product.price}</p>
-              </div>
-            ))}
-        </div>
-      )}
-
-      <ul
-        style={{
-          display: "flex",
-          listStyle: "none",
-          padding: "0px",
-          justifyContent: "center",
-          marginTop: "20px",
-          margin: "20px",
-        }}
-      >
-        {Array.from({ length: Math.ceil(products.length / productsPerPage) }).map((_, index) => (
-          <li key={index} className={currentPage === index + 1 ? "active" : ""}>
-            <a onClick={() => paginate(index + 1)}>{index + 1}</a>
-          </li>
+      <div id="products-container" style={{ display: "flex", flexWrap: "wrap" }}>
+        {filteredProducts.map((product) => (
+          <div key={product.id} style={{ width: "20%", marginBottom: "20px", padding: "10px", boxSizing: "border-box" }}>
+            <img
+              src={extractImageUrl(product.images)}
+              alt={`${product.title} - Image`}
+              style={{
+                width: "100%", height: "auto", borderRadius: "5%" }}
+            />
+            {/* <p>{product.description}</p> */}
+            <p>Price: ${product.price}</p>
+            <h2>{product.title}</h2>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
-
-
 
 export default CategoriesScreen;

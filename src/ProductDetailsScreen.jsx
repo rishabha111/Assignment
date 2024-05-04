@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState,useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
 const containerStyle = {
@@ -90,7 +90,15 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
   } catch (error) {
     alert("Failed to initiate checkout. Please try again later api error");
   }
-};
+  };
+  
+  useEffect(() => {
+  const storedProducts = localStorage.getItem("addedProducts");
+  if (storedProducts) {
+    setAddedProducts(JSON.parse(storedProducts));
+  }
+}, []);
+
 
 
   return (
@@ -125,3 +133,14 @@ const ProductDetailsScreen = ({ product, addToCart }) => {
 };
 
 export default ProductDetailsScreen;
+
+
+
+
+
+
+
+
+
+
+
